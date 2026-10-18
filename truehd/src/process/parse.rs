@@ -265,6 +265,16 @@ impl Parser {
         self.state.check_fifo = check;
     }
 
+    /// Whether matrix interpolation values are read and discarded.
+    ///
+    /// `false` (the default) applies the per-sample interpolation a matrix update carries,
+    /// which is what a lossless decode needs. `true` reads the values and drops them, so every
+    /// primitive matrix holds the coefficients last transmitted until the next update. The
+    /// decode is then no longer bit-exact on a stream that interpolates.
+    pub fn set_ignore_interpolation(&mut self, ignore: bool) {
+        self.state.ignore_interpolation = ignore;
+    }
+
     /// Deepest each byte-domain FIFO accumulator has been, in bytes.
     ///
     /// Indexed by [`Accumulator`](crate::utils::fifo::Accumulator): substream 0, the
@@ -539,6 +549,9 @@ pub struct ParserState {
     pub fail_level: log::Level,
     pub allow_seamless_branch: bool,
     pub check_fifo: bool,
+    /// Matrix interpolation values are read and discarded; see
+    /// [`Parser::set_ignore_interpolation`].
+    pub ignore_interpolation: bool,
     pub diagnostic_mode: DiagnosticMode,
 
     /// Checks that fired, in the order they fired. Only filled in
@@ -651,6 +664,7 @@ impl Default for ParserState {
             fail_level: log::Level::Error,
             allow_seamless_branch: true,
             check_fifo: true,
+            ignore_interpolation: false,
             diagnostic_mode: DiagnosticMode::default(),
             diagnostics: Vec::new(),
             au_index: 0,
@@ -800,6 +814,7 @@ impl ParserState {
             fail_level: self.fail_level,
             allow_seamless_branch: self.allow_seamless_branch,
             check_fifo: self.check_fifo,
+            ignore_interpolation: self.ignore_interpolation,
             required_presentations: self.required_presentations,
             branches: self.branches.clone(),
             diagnostic_mode: self.diagnostic_mode,
@@ -998,6 +1013,7 @@ mod tests {
         parser.set_required_presentations(&[true, false, true, false]);
         parser.set_allow_seamless_branch(true);
         parser.set_check_fifo(false);
+        parser.set_ignore_interpolation(true);
 
         // Simulate accumulated stream state
         parser.state.has_parsed_au = true;
@@ -1013,6 +1029,7 @@ mod tests {
         );
         assert!(parser.state.allow_seamless_branch);
         assert!(!parser.state.check_fifo);
+        assert!(parser.state.ignore_interpolation);
         assert!(!parser.state.has_parsed_au);
         assert_eq!(parser.state.au_counter, 0);
         assert_eq!(parser.state.input_timing, 0);

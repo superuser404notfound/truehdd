@@ -64,6 +64,7 @@ pub struct Matrixing {
 
 impl Matrixing {
     pub fn read(state: &mut ParserState, reader: &mut BsIoSliceReader) -> Result<Self> {
+        let ignore_interpolation = state.ignore_interpolation;
         let current_substream_index = state.substream_index;
         let this_substream_info = state.substream_info;
         let audio_sampling_frequency_1 = state.audio_sampling_frequency_1;
@@ -159,7 +160,8 @@ impl Matrixing {
                                 continue;
                             }
 
-                            matrices.delta_cf[chi] = reader.get_s(delta_bits + 1)?;
+                            let delta = reader.get_s(delta_bits + 1)?;
+                            matrices.delta_cf[chi] = if ignore_interpolation { 0 } else { delta };
                         }
                     }
                 }
