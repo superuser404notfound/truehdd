@@ -19,7 +19,7 @@ path = "src/main.rs"
 
 [dependencies]
 truehdd-macros = { version = "0.1.1", path = "truehdd-macros" }
-truehd = { version = "0.7.2", path = "truehd", features = ["evo-protection", "matrix-interpolation"] }
+truehd = { version = "0.7.2", path = "truehd", features = ["evo-protection"] }
 
 anyhow = "1.0.104"
 clap = { version = "4.6.4", features = ["derive"] }
@@ -31,6 +31,11 @@ log = "0.4.33"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 serde_yaml_ng = "0.10.0"
+
+[features]
+default = ["matrix-interpolation"]
+# See the truehd crate's feature of the same name.
+matrix-interpolation = ["truehd/matrix-interpolation"]
 
 [dev-dependencies]
 tempfile = "3.27.0"
