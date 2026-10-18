@@ -764,6 +764,7 @@ impl DecoderState {
                     }
 
                     let dither_table = &ss_state.dither_table;
+                    #[cfg(feature = "matrix-interpolation")]
                     let samples_per_au_recip = (1 << 16) / samples_per_au as i64;
 
                     for pmi in 0..primitive_matrices {
@@ -784,7 +785,11 @@ impl DecoderState {
                         // Most matrices hold still over the access unit: without a
                         // delta there is nothing to interpolate, and no second
                         // product to take of every sample.
-                        if !terms.has_delta() {
+                        #[cfg(feature = "matrix-interpolation")]
+                        let steady = !terms.has_delta();
+                        #[cfg(not(feature = "matrix-interpolation"))]
+                        let steady = true;
+                        if steady {
                             apply_steady_matrix(
                                 &terms,
                                 rows,
@@ -797,6 +802,7 @@ impl DecoderState {
                             continue;
                         }
 
+                        #[cfg(feature = "matrix-interpolation")]
                         by_term_count!(
                             terms,
                             apply_matrix(
@@ -816,6 +822,7 @@ impl DecoderState {
                         );
                     }
 
+                    #[cfg(feature = "matrix-interpolation")]
                     if decoded_sample_len + block_size == samples_per_au {
                         for pmi in 0..primitive_matrices {
                             let m_coeff = &mut ss_state.m_coeff[pmi];
@@ -1793,6 +1800,7 @@ impl MatrixTerms {
     }
 
     /// Whether the matrix changes over the access unit.
+    #[cfg(feature = "matrix-interpolation")]
     fn has_delta(&self) -> bool {
         self.delta[..self.count].iter().any(|&delta| delta != 0)
     }

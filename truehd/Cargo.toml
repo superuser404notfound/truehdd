@@ -16,6 +16,11 @@ name = "truehd"
 crate-type = ["lib"]
 
 [features]
+default = ["matrix-interpolation"]
+# Applies the matrix interpolation values a stream carries. Without it they are read and
+# discarded at parse time and the interpolating decode path is not compiled at all: a decode
+# that is no longer bit-exact on streams that interpolate.
+matrix-interpolation = []
 # Per-stage parse timing, read with Parser::last_parse_stats
 perf = []
 # Evolution frame protection checking, with ExtraData::verify_evo_protection

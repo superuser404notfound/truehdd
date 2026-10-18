@@ -161,7 +161,8 @@ impl Matrixing {
                             }
 
                             let delta = reader.get_s(delta_bits + 1)?;
-                            matrices.delta_cf[chi] = if ignore_interpolation { 0 } else { delta };
+                            let applied = cfg!(feature = "matrix-interpolation") && !ignore_interpolation;
+                            matrices.delta_cf[chi] = if applied { delta } else { 0 };
                         }
                     }
                 }
